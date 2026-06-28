@@ -16,6 +16,7 @@ resource "azurerm_storage_account" "site" {
   location                 = azurerm_resource_group.site.location
   account_tier             = "Standard"
   account_replication_type = var.replication_type
+  access_tier              = var.access_tier
 
   static_website {
     index_document = "index.html"

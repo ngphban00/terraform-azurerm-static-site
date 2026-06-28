@@ -44,3 +44,14 @@ variable "replication_type" {
     error_message = "replication_type must be LRS, GRS, RAGRS, or ZRS."
   }
 }
+
+variable "access_tier" {
+  type        = string
+  description = "Storage account access tier (Hot for frequent access, Cool for infrequent)"
+  default     = "Hot"
+
+  validation {
+    condition     = contains(["Hot", "Cool"], var.access_tier)
+    error_message = "access_tier must be Hot or Cool."
+  }
+}
