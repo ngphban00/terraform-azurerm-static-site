@@ -33,3 +33,14 @@ variable "azure_region" {
   description = "Azure region"
   default     = "southeastasia"
 }
+
+variable "replication_type" {
+  type        = string
+  description = "Storage account replication type"
+  default     = "LRS"
+
+  validation {
+    condition     = contains(["LRS", "GRS", "RAGRS", "ZRS"], var.replication_type)
+    error_message = "replication_type must be LRS, GRS, RAGRS, or ZRS."
+  }
+}
