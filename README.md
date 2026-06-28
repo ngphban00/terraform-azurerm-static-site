@@ -6,7 +6,7 @@ Terraform module managed by the **Platform team** for provisioning a static webs
 
 ```hcl
 module "order_portal" {
-  source  = "app.terraform.io/ngphban/static-site/azurerm"
+  source  = "app.terraform.io/ngphban/order-portal/azurerm"
   version = "~> 1.0"
 
   name            = "acme-order-portal"
