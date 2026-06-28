@@ -1,0 +1,20 @@
+import "tfplan/v2" as tfplan
+
+# Enforce Cool access tier in dev to minimize cost
+# Hot tier costs ~2x more for infrequently accessed static content
+
+storage_accounts = filter tfplan.resource_changes as _, rc {
+    rc.type is "azurerm_storage_account" and
+    (rc.change.actions contains "create" or
+     rc.change.actions contains "update")
+}
+
+deny_hot_tier = rule {
+    all storage_accounts as _, sa {
+        sa.change.after.access_tier in ["Cool", null]
+    }
+}
+
+main = rule {
+    deny_hot_tier
+}

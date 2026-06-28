@@ -1,0 +1,20 @@
+import "tfplan/v2" as tfplan
+
+# All storage accounts must have the four standard tags
+required_tags = ["environment", "cost_center", "owner", "managed_by"]
+
+storage_accounts = filter tfplan.resource_changes as _, rc {
+    rc.type is "azurerm_storage_account" and
+    rc.change.actions contains "create"
+}
+
+has_required_tags = rule {
+    all storage_accounts as _, sa {
+        all required_tags as tag {
+            sa.change.after.tags[tag] is not null and
+            sa.change.after.tags[tag] is not ""
+        }
+    }
+}
+
+main = rule { has_required_tags }
