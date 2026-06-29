@@ -55,14 +55,3 @@ variable "access_tier" {
     error_message = "access_tier must be Hot or Cool."
   }
 }
-
-variable "min_tls_version" {
-  type        = string
-  description = "Minimum TLS version enforced on the storage account"
-  default     = "TLS1_2"
-
-  validation {
-    condition     = contains(["TLS1_0", "TLS1_1", "TLS1_2"], var.min_tls_version)
-    error_message = "min_tls_version must be TLS1_0, TLS1_1, or TLS1_2."
-  }
-}
