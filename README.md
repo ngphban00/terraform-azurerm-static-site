@@ -29,6 +29,7 @@ module "order_portal" {
 | azure_region | Azure region | string | no |
 | replication_type | Storage replication type (LRS/GRS/ZRS) | string | no (default: LRS) |
 | access_tier | Storage access tier (Hot/Cool) | string | no (default: Hot) |
+| min_tls_version | Minimum TLS version (TLS1_0/TLS1_1/TLS1_2) | string | no (default: TLS1_2) |
 
 ## Outputs
 
@@ -44,3 +45,4 @@ module "order_portal" {
 | 1.0.0 | Initial release — Azure Storage static website with templatefile support |
 | 1.1.0 | Add `replication_type` variable (default LRS) — non-breaking |
 | 1.2.0 | Add `access_tier` variable (default Hot) — non-breaking |
+| 1.3.0 | Add `min_tls_version` variable (default TLS1_2) — non-breaking |
