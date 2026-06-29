@@ -8,12 +8,17 @@ on:
   pull_request:
     branches: [main]
 
+permissions:
+  contents: write
+
 jobs:
   validate:
-    name: Validate
+    name: Quality Gate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -29,14 +34,50 @@ jobs:
       - name: Validate
         run: terraform validate
 
-  publish:
-    name: Publish to TFC Registry
+      - name: Run unit tests
+        run: terraform test
+
+  release:
+    name: Release to TFC Registry
     needs: validate
-    if: startsWith(github.ref, 'refs/tags/v')
+    # Only release on feat: commits merged to main — not on tag pushes (avoids loop)
+    if: |
+      github.event_name == 'push' &&
+      github.ref == 'refs/heads/main' &&
+      startsWith(github.event.head_commit.message, 'feat:')
     runs-on: ubuntu-latest
     steps:
-      - name: Quality gate passed
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute next version
+        id: version
         run: |
-          echo "✅ Module ${{ github.ref_name }} passed all quality checks"
-          echo "📦 Now available: app.terraform.io/ngphban/order-portal/azurerm ${{ github.ref_name }}"
-          echo "   Application teams can upgrade their version constraint to consume this release."
+          LATEST=$(git tag --sort=-v:refname | grep '^v' | head -1)
+          if [ -z "$LATEST" ]; then
+            NEXT="v1.0.0"
+          else
+            NEXT=$(echo $LATEST | awk -F'[v.]' '{printf "v%d.%d.0", $2, $3+1}')
+          fi
+          echo "latest=$LATEST" >> $GITHUB_OUTPUT
+          echo "next=$NEXT"     >> $GITHUB_OUTPUT
+
+      - name: Tag and publish
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git tag ${{ steps.version.outputs.next }}
+          git push origin ${{ steps.version.outputs.next }}
+
+      - name: Summary
+        run: |
+          echo "## Module Released" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| | |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| Previous | \`${{ steps.version.outputs.latest }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Released | \`${{ steps.version.outputs.next }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Source   | \`app.terraform.io/ngphban/order-portal/azurerm\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "TFC Registry will detect this version via webhook." >> $GITHUB_STEP_SUMMARY
