@@ -27,6 +27,13 @@ run "default_replication_is_lrs" {
 }
 
 
+run "default_tls_is_1_2" {
+  assert {
+    condition     = azurerm_storage_account.site.min_tls_version == "TLS1_2"
+    error_message = "Default min_tls_version must be TLS1_2"
+  }
+}
+
 # ── Mandatory tags ────────────────────────────────────────────────────────────
 
 run "mandatory_tags_are_applied" {
@@ -74,6 +81,13 @@ run "rejects_invalid_replication_type" {
   expect_failures = [var.replication_type]
 }
 
+
+run "rejects_invalid_tls_version" {
+  variables {
+    min_tls_version = "TLS1_3"
+  }
+  expect_failures = [var.min_tls_version]
+}
 
 # ── Custom values pass through ────────────────────────────────────────────────
 
