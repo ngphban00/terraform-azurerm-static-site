@@ -17,6 +17,7 @@ resource "azurerm_storage_account" "site" {
   account_tier             = "Standard"
   account_replication_type = var.replication_type
   access_tier              = var.access_tier
+  min_tls_version          = var.min_tls_version
 
   static_website {
     index_document = "index.html"
