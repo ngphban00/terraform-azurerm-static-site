@@ -1,7 +1,10 @@
 import "tfplan/v2" as tfplan
+import "tfrun" as tfrun
 
-# Enforce Cool access tier in dev to minimize cost
-# Hot tier costs ~2x more for infrequently accessed static content
+# Enforce Cool access tier only in dev workspaces to minimize cost.
+# Staging and prod are permitted to use Hot tier.
+
+is_dev = tfrun.workspace.name matches ".*-dev$"
 
 storage_accounts = filter tfplan.resource_changes as _, rc {
     rc.type is "azurerm_storage_account" and
@@ -16,5 +19,5 @@ deny_hot_tier = rule {
 }
 
 main = rule {
-    deny_hot_tier
+    not is_dev or deny_hot_tier
 }
