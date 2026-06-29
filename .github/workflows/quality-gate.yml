@@ -1,0 +1,42 @@
+name: Module Quality Gate
+
+on:
+  push:
+    branches: [main]
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "~> 1.6"
+
+      - name: Check formatting
+        run: terraform fmt -check -recursive
+
+      - name: Initialize
+        run: terraform init -backend=false
+
+      - name: Validate
+        run: terraform validate
+
+  publish:
+    name: Publish to TFC Registry
+    needs: validate
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Quality gate passed
+        run: |
+          echo "✅ Module ${{ github.ref_name }} passed all quality checks"
+          echo "📦 Now available: app.terraform.io/ngphban/order-portal/azurerm ${{ github.ref_name }}"
+          echo "   Application teams can upgrade their version constraint to consume this release."
